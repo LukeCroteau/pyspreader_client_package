@@ -1,7 +1,10 @@
+'''
+PyPI Setup
+'''
 import setuptools
 
 with open("README.md", "r") as fh:
-    long_description = fh.read()
+    LONG_DESCRIPTION = fh.read()
 
 setuptools.setup(
     name="pyspreader",
@@ -9,7 +12,7 @@ setuptools.setup(
     author="Luke Croteau",
     author_email="luke.j.croteau@gmail.com",
     description="Python Reference client for the Spreader distributed work system",
-    long_description=long_description,
+    long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     url="https://github.com/LukeCroteau/pyspreader_client_package",
     packages=setuptools.find_packages(),
