@@ -64,3 +64,14 @@ class SpreadClient:
             self.agent_name = 'Python Ref Client'
         __current_agent_id = self._call_stored_procedure_with_output('agent_init', platform.node(), self.agent_name,
                 psutil.cpu_count(), psutil.virtual_memory().total // 1048576)
+        return __current_agent_id
+
+class MSSQLSpreadClient(SpreadClient):
+    '''
+    Spreader client for MSSQL
+    '''
+    def _call_stored_procedure(self, procedure_name, *args):
+        print('Overridden')
+
+    def _call_stored_procedure_with_output(self, procedure_name, *args):
+        print('Overridden')
