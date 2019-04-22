@@ -22,6 +22,7 @@ class SpreadClient:
     def __init__(self, **kwargs):
         if 'debug' in kwargs:
             self.debug_mode = kwargs['debug']
+        if self.debug_mode:
             self.debug_log('Debug Mode')
 
         self._engine = create_engine(kwargs['connection_string'],
