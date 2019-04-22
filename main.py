@@ -1,19 +1,34 @@
 '''
 Development Test Module
 '''
-import os
+# import os
+import time
 from dotenv import load_dotenv
-from pyspreader.client import SpreadClient, MSSQLSpreadClient
+#from pyspreader.client import SpreadClient, MSSQLSpreadClient
 from pyspreader.worker import SpreadWorker
 load_dotenv(verbose=True)
 
-cli = MSSQLSpreadClient(connection_string=os.environ.get('SPREADER_LIVE_DSN'), debug=True)
-cli.agent_name = 'Test Agent'
-agentid = cli.connect()
+if __name__ == '__main__':
+    # cli = MSSQLSpreadClient(connection_string=os.environ.get('SPREADER_LIVE_DSN'), debug=True)
+    # cli.agent_name = 'Test Agent'
+    # agentid = cli.connect()
 
-print('Current Agent ID is', agentid)
+    # print('Current Agent ID is', agentid)
 
-tmp = SpreadWorker()
-print('SpreadWorker: ', tmp)
+    print('*******************************')
+    tmp = SpreadWorker(debug=True)
+    print('SpreadWorker: ', tmp)
 
-print('Finished')
+    print('Starting...')
+    tmp.start()
+
+    print('Waiting 5 seconds...')
+    time.sleep(5)
+
+    input('Press Enter to Stop\n')
+
+    print('Stopping...')
+    tmp.log_debug('Stopping Worker')
+    tmp.stop()
+
+    print('Finished')
