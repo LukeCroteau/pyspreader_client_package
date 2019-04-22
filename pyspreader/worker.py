@@ -19,17 +19,17 @@ SPREADER_LOG_FATAL = 4
 SPREADER_WORKER_PING_LIMIT_IN_SECONDS = 180
 SPREADER_WORKER_TIMEOUT_LIMIT_IN_SECONDS = 600
 
-def encode_params(decoded_data):
+def encode_params(decoded_data: str) -> str:
     ''' Prepare data for Spreader Interop '''
     return decoded_data.replace('|', '&#124;').replace('\r\n', '&#13;&#10;')
 
-def decode_params(encoded_data):
+def decode_params(encoded_data: str) -> str:
     ''' Decode Parameter data from Spreader Interop '''
     return encoded_data.replace('&#124;', '|').replace('&#13;&#10;', '\r\n')
 
-def output_to_console(log_string):
+def output_to_console(log_message):
     ''' Write a message to Console '''
-    print(str.format('{} - {}', datetime.datetime.now(), log_string))
+    print(str.format('{} - {}', datetime.datetime.now(), log_message))
 
 class SpreadWorker:
     '''
@@ -72,27 +72,27 @@ class SpreadWorker:
         if self.debug_mode:
             output_to_console(log_string)
             if log_to_client:
-                self.__send___log_debug(log_string)
+                self.__send_log_debug(log_string)
 
     def __log_message(self, log_string):
         ''' Log a Message to Console and Client '''
         output_to_console(log_string)
-        self.__send___log_message(log_string)
+        self.__send_log_message(log_string)
 
     def __log_warning(self, log_string):
         ''' Log a Warning to Console and Client '''
         output_to_console(log_string)
-        self.__send___log_warning(log_string)
+        self.__send_log_warning(log_string)
 
     def __log_error(self, log_string):
         ''' Log an Error to Console and Client '''
         output_to_console(log_string)
-        self.__send___log_error(log_string)
+        self.__send_log_error(log_string)
 
     def __log_fatal(self, log_string):
         ''' Log a Fatal message to Console and Client '''
         output_to_console(log_string)
-        self.__send___log_fatal(log_string)
+        self.__send_log_fatal(log_string)
 
     def __repr__(self):
         return str.format('<SpreadWorker, WorkerID {}, Port {}>', self.__worker_id, self.__port)
@@ -111,19 +111,19 @@ class SpreadWorker:
     def __send_log(self, level, log_string):
         self.__send_to_socket('WKRLOG', str.format('{}|{}', level, encode_params(log_string)))
 
-    def __send___log_debug(self, log_string):
+    def __send_log_debug(self, log_string):
         self.__send_log(SPREADER_LOG_DEBUG, log_string)
 
-    def __send___log_message(self, log_string):
+    def __send_log_message(self, log_string):
         self.__send_log(SPREADER_LOG_MESSAGE, log_string)
 
-    def __send___log_warning(self, log_string):
+    def __send_log_warning(self, log_string):
         self.__send_log(SPREADER_LOG_WARNING, log_string)
 
-    def __send___log_error(self, log_string):
+    def __send_log_error(self, log_string):
         self.__send_log(SPREADER_LOG_ERROR, log_string)
 
-    def __send___log_fatal(self, log_string):
+    def __send_log_fatal(self, log_string):
         self.__send_log(SPREADER_LOG_FATAL, log_string)
 
     def __send_worker_start(self):
