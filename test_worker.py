@@ -1,20 +1,16 @@
 '''
-Development Test Module
+Development Test Module for SpreadWorker
 '''
-# import os
 import argparse
+import datetime
 from dotenv import load_dotenv
-#from pyspreader.client import SpreadClient, MSSQLSpreadClient
 from pyspreader.worker import SpreadWorker
 load_dotenv(verbose=True)
 
+def scan_thing(wrkr, params):
+    print(str.format('{} - Scanned! - Params: {}', datetime.datetime.now(), params))
+
 if __name__ == '__main__':
-    # cli = MSSQLSpreadClient(connection_string=os.environ.get('SPREADER_LIVE_DSN'), debug=True)
-    # cli.agent_name = 'Test Agent'
-    # agentid = cli.connect()
-
-    # print('Current Agent ID is', agentid)
-
     parser = argparse.ArgumentParser(prefix_chars='/')
     parser.add_argument('/id', required=True)
     xargs = parser.parse_args()
@@ -22,6 +18,8 @@ if __name__ == '__main__':
     print('*******************************')
     worker = SpreadWorker(debug=True, id=xargs.id)
     print('SpreadWorker: ', worker)
+
+    worker.register_simple_scanner(scan_thing, 2)
 
     print('Starting...')
     worker.start()

@@ -3,7 +3,6 @@ Worker module for Spreader
 New Workers would create a subclass from here, and implement the required methods.
 '''
 from multiprocessing import Process, Queue, Lock
-import argparse
 import datetime
 import queue
 import socket
@@ -45,17 +44,21 @@ class SpreadWorker:
         self.__running = False
         self.__last_keep_alive = None
         self.debug_mode = False
+        self.__registered_simple_scanners = []
+        self.__job_parameters = ''
+        self.__accesscodes = []
 
         if 'debug' in kwargs:
             self.debug_mode = kwargs['debug']
         if self.debug_mode:
             self.__log_debug('Debug Mode', False)
 
-        parser = argparse.ArgumentParser(prefix_chars='/')
-        parser.add_argument('/id', required=True)
-        xargs = parser.parse_args()
-        self.__worker_id = xargs.id
-        self.__process = Process(target=self._command_loop, args=(self.__command_queue,))
+        if 'id' in kwargs:
+            self.__worker_id = kwargs['id']
+        else:
+            raise Exception('You must specify a Worker ID.')
+
+        self.__process = None
 
         if 'port' in kwargs:
             self.__port = int(kwargs['port'])
@@ -133,10 +136,20 @@ class SpreadWorker:
         self.__send_to_socket('WKRPONG')
 
     def __handle_client_pong(self):
-        pass
+        self.__last_keep_alive = datetime.datetime.now()
 
     def __handle_client_init(self, params):
+        self.__accesscodes = params.split('|')[0].split(';')
+        self.__job_parameters = decode_params(params.split('|')[2])
         self.__send_to_socket('WKRINITIALIZED')
+
+    def __handle_client_task(self, task_data):
+        datasplit = task_data.split('|')
+        taskid = datasplit[0]
+        params = datasplit[1]
+        success = False
+
+        self.__send_to_socket('WKRTASKDONE', str.format('{}|{}', taskid, 1 if success else 0))
 
     def __parse_queue_command(self, data):
         ''' Internal Queue Parser. '''
@@ -185,7 +198,8 @@ class SpreadWorker:
         if command == 'WKRPING':
             self.__handle_client_ping()
         elif command == 'WKRTASK':
-            self.__log_debug(str.format('Received a Task! Params: {}', params))
+            self.__log_debug(str.format('Received a Task! Params: {}', params), False)
+            self.__handle_client_task(params)
         elif command == 'WKRPONG':
             self.__handle_client_pong()
         elif command == 'WKRINIT':
@@ -206,6 +220,16 @@ class SpreadWorker:
             self.__log_debug('Lost connection to Client', False)
         elif diffinseconds > SPREADER_WORKER_PING_LIMIT_IN_SECONDS:
             self.__send_to_socket('WKRPING')
+
+    def __has_access(self, access_code):
+        return access_code in self.__accesscodes
+
+    def __do_scan(self):
+        for idx in range(len(self.__registered_simple_scanners)):
+            params = self.__registered_simple_scanners[idx]
+            if (datetime.datetime.now() - params['last_run']).total_seconds() > params['loop_every']:
+                params['method'](self, self.__job_parameters)
+                params['last_run'] = datetime.datetime.now()
 
     def _command_loop(self, work_queue: Queue):
         ''' Method called by __process start/stop '''
@@ -237,6 +261,10 @@ class SpreadWorker:
                 pass
 
             self.__check_keep_alive()
+
+            if self.__has_access('SCAN'):
+                self.__do_scan()
+
             time.sleep(0.25)
         self.__log_debug('** Command Loop Stopped.', False)
 
@@ -244,15 +272,26 @@ class SpreadWorker:
         '''
         Start monitoring the Client for work
         '''
-        self.__running = True
-        self.__process.start()
+        if not self.__process:
+            self.__running = True
+            self.__process = Process(target=self._command_loop, args=(self.__command_queue,))
+            self.__process.start()
+
+    def wait_for_worker_close(self):
+        '''
+        Use this method in a Client implementation where you want to let the Worker dictate when to exit.
+        WARNING: You will NOT be able to reclaim control until the main client disconnects the worker.
+        '''
+        if self.__process:
+            self.__process.join()
 
     def stop(self):
         '''
         Adds a QUIT message to the __process queue, and waits for the process to stop
         '''
-        self.__command_queue.put('QUIT')
-        self.__process.join()
+        if self.__process:
+            self.__command_queue.put('QUIT')
+            self.__process.join()
 
     def log_debug(self, log_message):
         ''' Adds a Debug message to the Local Queue '''
@@ -273,3 +312,15 @@ class SpreadWorker:
     def log_fatal(self, log_message):
         ''' Adds a Fatal message to the Local Queue '''
         self.__command_queue.put(str.format('FATAL|{}', log_message))
+
+    def register_simple_scanner(self, scan_method, loop_frequency=5):
+        '''
+        Registers a Simple Scanner method.
+        The worker will execute your method every [loop_frequency] seconds.
+        scan_method should be a method with two parameters:
+            An object representing a SpreadWorker
+            A string, which will contain the parameters for the Job
+        '''
+        self.__registered_simple_scanners.append({'loop_every': loop_frequency,
+            'method': scan_method,
+            'last_run': datetime.datetime.now()})
