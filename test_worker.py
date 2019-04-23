@@ -14,7 +14,7 @@ class WorkerSaysYes(SpreadWorker):
 
 def scan_thing(wrkr, params):
     ''' A simple Scan method '''
-    print(str.format('{} - Scanned! - Params: {}', datetime.datetime.now(), params))
+    print(str.format('{} - Scanned! - Worker: {}, Job Params: {}', datetime.datetime.now(), wrkr, params))
 
 if __name__ in ('__main__', 'test_worker'):
     parser = argparse.ArgumentParser(prefix_chars='/')

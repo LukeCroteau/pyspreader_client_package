@@ -296,38 +296,73 @@ class SpreadWorker(abc.ABC):
             self.__process.join()
 
     def task_log_debug(self, log_message):
+        '''
+        Logs a debug message via the client.
+        This is meant to be called by Subclassed workers implementing Task details.
+        '''
         self.__log_debug(log_message)
 
     def task_log_message(self, log_message):
+        '''
+        Logs a message via the client.
+        This is meant to be called by Subclassed workers implementing Task details.
+        '''
         self.__log_message(log_message)
 
     def task_log_warning(self, log_message):
+        '''
+        Logs a warning message via the client.
+        This is meant to be called by Subclassed workers implementing Task details.
+        '''
         self.__log_warning(log_message)
 
     def task_log_error(self, log_message):
+        '''
+        Logs an error message via the client.
+        This is meant to be called by Subclassed workers implementing Task details.
+        '''
         self.__log_error(log_message)
 
     def task_log_fatal(self, log_message):
+        '''
+        Logs a fatal message via the client.
+        This is meant to be called by Subclassed workers implementing Task details.
+        '''
         self.__log_fatal(log_message)
 
     def log_debug(self, log_message):
-        ''' Adds a Debug message to the Local Queue '''
+        '''
+        Adds a debug message to the Local Queue.
+        This is meant to be called by processes External to the worker.
+        '''
         self.__command_queue.put(str.format('DEBUG|{}', log_message))
 
     def log_message(self, log_message):
-        ''' Adds a Message to the Local Queue '''
+        '''
+        Adds a message to the Local Queue.
+        This is meant to be called by processes External to the worker.
+        '''
         self.__command_queue.put(str.format('MESSAGE|{}', log_message))
 
     def log_warning(self, log_message):
-        ''' Adds a Warning to the Local Queue '''
+        '''
+        Adds a warning message to the Local Queue.
+        This is meant to be called by processes External to the worker.
+        '''
         self.__command_queue.put(str.format('WARNING|{}', log_message))
 
     def log_error(self, log_message):
-        ''' Adds an Error message to the Local Queue '''
+        '''
+        Adds an error message to the Local Queue.
+        This is meant to be called by processes External to the worker.
+        '''
         self.__command_queue.put(str.format('ERROR|{}', log_message))
 
     def log_fatal(self, log_message):
-        ''' Adds a Fatal message to the Local Queue '''
+        '''
+        Adds a fatal message to the Local Queue.
+        This is meant to be called by processes External to the worker.
+        '''
         self.__command_queue.put(str.format('FATAL|{}', log_message))
 
     def register_simple_scanner(self, scan_method, loop_frequency=5):
