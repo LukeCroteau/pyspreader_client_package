@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from pyspreader.client import SpreadClient, MSSQLSpreadClient
 load_dotenv(verbose=True)
 
-if __name__ == '__main__':
+if __name__ in ('__main__', 'test_client'):
     cli = SpreadClient(connection_string=os.environ.get('SPREADER_LIVE_PG_DSN'), debug=True)
     cli.agent_name = 'Test Agent'
     agentid = cli.connect()

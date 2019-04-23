@@ -16,7 +16,7 @@ def scan_thing(wrkr, params):
     ''' A simple Scan method '''
     print(str.format('{} - Scanned! - Params: {}', datetime.datetime.now(), params))
 
-if __name__ == '__main__':
+if __name__ in ('__main__', 'test_worker'):
     parser = argparse.ArgumentParser(prefix_chars='/')
     parser.add_argument('/id', required=True)
     xargs = parser.parse_args()
