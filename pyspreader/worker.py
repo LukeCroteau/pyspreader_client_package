@@ -295,6 +295,21 @@ class SpreadWorker(abc.ABC):
             self.__command_queue.put('QUIT')
             self.__process.join()
 
+    def task_log_debug(self, log_message):
+        self.__log_debug(log_message)
+
+    def task_log_message(self, log_message):
+        self.__log_message(log_message)
+
+    def task_log_warning(self, log_message):
+        self.__log_warning(log_message)
+
+    def task_log_error(self, log_message):
+        self.__log_error(log_message)
+
+    def task_log_fatal(self, log_message):
+        self.__log_fatal(log_message)
+
     def log_debug(self, log_message):
         ''' Adds a Debug message to the Local Queue '''
         self.__command_queue.put(str.format('DEBUG|{}', log_message))
