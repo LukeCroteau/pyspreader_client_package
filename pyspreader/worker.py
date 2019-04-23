@@ -48,6 +48,7 @@ class SpreadWorker(abc.ABC):
         self.__registered_simple_scanners = []
         self.__job_parameters = ''
         self.__accesscodes = []
+        self.job_params = {}
 
         if 'debug' in kwargs:
             self.debug_mode = kwargs['debug']
@@ -325,6 +326,19 @@ class SpreadWorker(abc.ABC):
         self.__registered_simple_scanners.append({'loop_every': loop_frequency,
             'method': scan_method,
             'last_run': datetime.datetime.now()})
+
+    def do_init_jobparams(self):
+        '''
+        Fills the job_params dictionary with parameters.
+        Default implementation fills this by splitting the params field with pipes.
+        Feel free to reimplement this, and fill the dictionary however you'd prefer to edit your params!
+        '''
+        params = self.__job_parameters.split('|')
+
+        for item in params:
+            if item.strip() != '':
+                tempitem = item.strip()
+                self.job_params[tempitem[:tempitem.index('=')]] = tempitem[tempitem.index('=') + 1:]
 
     @abc.abstractmethod
     def do_task(self, task_params: str) -> bool:
