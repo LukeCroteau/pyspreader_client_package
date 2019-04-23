@@ -7,7 +7,13 @@ from dotenv import load_dotenv
 from pyspreader.worker import SpreadWorker
 load_dotenv(verbose=True)
 
+class WorkerSaysYes(SpreadWorker):
+    ''' A simple subclass that always returns True for our tasks '''
+    def do_task(self, task_params: str) -> bool:
+        return True
+
 def scan_thing(wrkr, params):
+    ''' A simple Scan method '''
     print(str.format('{} - Scanned! - Params: {}', datetime.datetime.now(), params))
 
 if __name__ == '__main__':
@@ -16,7 +22,7 @@ if __name__ == '__main__':
     xargs = parser.parse_args()
 
     print('*******************************')
-    worker = SpreadWorker(debug=True, id=xargs.id)
+    worker = WorkerSaysYes(debug=True, id=xargs.id)
     print('SpreadWorker: ', worker)
 
     worker.register_simple_scanner(scan_thing, 2)

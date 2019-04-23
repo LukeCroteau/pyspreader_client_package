@@ -3,6 +3,7 @@ Worker module for Spreader
 New Workers would create a subclass from here, and implement the required methods.
 '''
 from multiprocessing import Process, Queue, Lock
+import abc
 import datetime
 import queue
 import socket
@@ -30,7 +31,7 @@ def output_to_console(log_message):
     ''' Write a message to Console '''
     print(str.format('{} - {}', datetime.datetime.now(), log_message))
 
-class SpreadWorker:
+class SpreadWorker(abc.ABC):
     '''
     Main Worker Class
     '''
@@ -147,7 +148,7 @@ class SpreadWorker:
         datasplit = task_data.split('|')
         taskid = datasplit[0]
         params = datasplit[1]
-        success = False
+        success = self.do_task(params)
 
         self.__send_to_socket('WKRTASKDONE', str.format('{}|{}', taskid, 1 if success else 0))
 
@@ -324,3 +325,8 @@ class SpreadWorker:
         self.__registered_simple_scanners.append({'loop_every': loop_frequency,
             'method': scan_method,
             'last_run': datetime.datetime.now()})
+
+    @abc.abstractmethod
+    def do_task(self, task_params: str) -> bool:
+        ''' Implement this method in your subclass to do the work! '''
+        return False
