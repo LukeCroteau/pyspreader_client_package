@@ -49,6 +49,7 @@ class SpreadWorker(abc.ABC):
         self.__job_parameters = ''
         self.__accesscodes = []
         self.job_params = {}
+        self.__job_id = 0
 
         if 'debug' in kwargs:
             self.debug_mode = kwargs['debug']
@@ -103,9 +104,26 @@ class SpreadWorker(abc.ABC):
         return str.format('<SpreadWorker, WorkerID {}, Port {}>', self.__worker_id, self.__port)
 
     def __read_response(self):
+        '''
+        Locks any transfer opportunity until we get a response from the server.
+        Only waits 5 seconds for a response, otherwise errors out.
+        '''
+        response = ''
+        self.__log_debug('Acquiring Transfer Lock for Read Response...', False)
         with self.__transfer_lock:
-            #response =
-            pass
+            endtime = datetime.datetime.now() + datetime.timedelta(seconds=5)
+            while datetime.datetime.now() < endtime:
+                try:
+                    data = self.__socket.recv(4096)
+                    self.__log_debug(str.format('Found Response Data: {}', data), False)
+                    data = data.decode().strip()
+                    self.__log_debug(str.format('Returning Response Data: {}', data[9:]), False)
+                    response = data[9:]
+                    break
+                except (timeout, BlockingIOError):
+                    self.__log_debug('No Response Found yet. Waiting..', False)
+
+        return response
 
     def __send_to_socket(self, command, data=''):
         self.__log_debug(str.format('Sending to socket, Command {}, Data {}', command, data), False)
@@ -131,6 +149,20 @@ class SpreadWorker(abc.ABC):
     def __send_log_fatal(self, log_string):
         self.__send_log(SPREADER_LOG_FATAL, log_string)
 
+    def __task_add_new(self, task_key, task_params, access_code):
+        self.__send_to_socket('WKRTASKADD',
+            str(self.__job_id) + '|' +
+            encode_params(task_key) + '|' +
+            encode_params(task_params) + '|' +
+            encode_params(access_code))
+        resp = self.__read_response()
+        result = resp.split('|')[0]
+        resp = resp.split('|')[1]
+        if result == '0':
+            resp = '0'
+
+        return int(resp)
+
     def __send_worker_start(self):
         self.__send_to_socket('WKRSTARTED')
 
@@ -142,6 +174,7 @@ class SpreadWorker(abc.ABC):
 
     def __handle_client_init(self, params):
         self.__accesscodes = params.split('|')[0].split(';')
+        self.__job_id = int(params.split('|')[1])
         self.__job_parameters = decode_params(params.split('|')[2])
         self.__send_to_socket('WKRINITIALIZED')
 
@@ -329,6 +362,13 @@ class SpreadWorker(abc.ABC):
         This is meant to be called by Subclassed workers implementing Task details.
         '''
         self.__log_fatal(log_message)
+
+    def task_add_new(self, task_key, task_params, access_code):
+        '''
+        Adds a new Task to the Spreader system, for consumption.
+        This is meant to be called by Subclassed workers implementing Scanning.
+        '''
+        return self.__task_add_new(task_key, task_params, access_code)
 
     def log_debug(self, log_message):
         '''
