@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pyspreader",
-    version="0.0.5a1",
+    version="0.0.5a3",
     author="Luke Croteau",
     author_email="luke.j.croteau@gmail.com",
     description="Python Reference client for the Spreader distributed work system",

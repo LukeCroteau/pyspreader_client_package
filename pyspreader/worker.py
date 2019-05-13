@@ -50,6 +50,7 @@ class SpreadWorker(abc.ABC):
         self.__accesscodes = []
         self.job_params = {}
         self.__job_id = 0
+        self.__client_init = False
 
         if 'debug' in kwargs:
             self.debug_mode = kwargs['debug']
@@ -176,6 +177,7 @@ class SpreadWorker(abc.ABC):
         self.__accesscodes = params.split('|')[0].split(';')
         self.__job_id = int(params.split('|')[1])
         self.__job_parameters = decode_params(params.split('|')[2])
+        self.__client_init = True
         self.__send_to_socket('WKRINITIALIZED')
 
     def __handle_client_task(self, task_data):
@@ -274,10 +276,13 @@ class SpreadWorker(abc.ABC):
         self.__transfer_lock = Lock()
 
         self.__last_keep_alive = datetime.datetime.now()
-        self.__send_to_socket('WKRSTARTED')
 
         self.__log_debug('Starting Command Loop.', False)
         while self.__running:
+            if not self.__client_init:
+                self.__log_debug('Client has not yet initialized us. Sending Start message.')
+                self.__send_worker_start()
+
             if not work_queue.empty():
                 try:
                     n = work_queue.get(timeout=0.01)
@@ -319,6 +324,7 @@ class SpreadWorker(abc.ABC):
         '''
         if self.__process:
             self.__process.join()
+            self.__client_init = False
 
     def stop(self):
         '''
@@ -327,6 +333,7 @@ class SpreadWorker(abc.ABC):
         if self.__process:
             self.__command_queue.put('QUIT')
             self.__process.join()
+            self.__client_init = False
 
     def task_log_debug(self, log_message):
         '''
