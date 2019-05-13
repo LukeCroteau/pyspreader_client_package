@@ -170,7 +170,7 @@ class SpreadWorker(abc.ABC):
             return
 
         if (not self.__last_start_attempt) or \
-            ((self.__last_start_attempt - datetime.datetime.now()).total_seconds() > 10):
+            ((datetime.datetime.now() - self.__last_start_attempt).total_seconds() > 10):
             self.__last_start_attempt = datetime.datetime.now()
             self.__log_debug('Client has not yet sent Initialization. Attempting to start.')
             self.__send_to_socket('WKRSTARTED')
