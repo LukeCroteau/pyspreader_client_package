@@ -51,6 +51,7 @@ class SpreadWorker(abc.ABC):
         self.job_params = {}
         self.__job_id = 0
         self.__client_init = False
+        self.__last_start_attempt = None
 
         if 'debug' in kwargs:
             self.debug_mode = kwargs['debug']
@@ -165,7 +166,14 @@ class SpreadWorker(abc.ABC):
         return int(resp)
 
     def __send_worker_start(self):
-        self.__send_to_socket('WKRSTARTED')
+        if self.__client_init:
+            return
+
+        if (not self.__last_start_attempt) or \
+            ((self.__last_start_attempt - datetime.datetime.now()).total_seconds() > 10):
+            self.__last_start_attempt = datetime.datetime.now()
+            self.__log_debug('Client has not yet sent Initialization. Attempting to start.')
+            self.__send_to_socket('WKRSTARTED')
 
     def __handle_client_ping(self):
         self.__send_to_socket('WKRPONG')
@@ -280,7 +288,6 @@ class SpreadWorker(abc.ABC):
         self.__log_debug('Starting Command Loop.', False)
         while self.__running:
             if not self.__client_init:
-                self.__log_debug('Client has not yet initialized us. Sending Start message.')
                 self.__send_worker_start()
 
             if not work_queue.empty():
