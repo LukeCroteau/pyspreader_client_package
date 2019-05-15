@@ -185,6 +185,7 @@ class SpreadWorker(abc.ABC):
         self.__accesscodes = params.split('|')[0].split(';')
         self.__job_id = int(params.split('|')[1])
         self.__job_parameters = decode_params(params.split('|')[2])
+        self.do_init_jobparams()
         self.__client_init = True
         self.__send_to_socket('WKRINITIALIZED')
 
