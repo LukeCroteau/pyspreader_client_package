@@ -43,7 +43,6 @@ class SpreadWorker(abc.ABC):
         self.__last_keep_alive = None
         self.__command_queue = Queue()
         self.__running = False
-        self.__last_keep_alive = None
         self.debug_mode = False
         self.__registered_simple_scanners = []
         self.__job_parameters = ''
@@ -291,7 +290,7 @@ class SpreadWorker(abc.ABC):
             if not self.__client_init:
                 self.__send_worker_start()
 
-            if not work_queue.empty():
+            while not work_queue.empty():
                 try:
                     n = work_queue.get(timeout=0.01)
                     self.__log_debug(str.format('Found Queue Item: {}', n), False)
