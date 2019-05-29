@@ -192,7 +192,7 @@ class SpreadWorker(abc.ABC):
         datasplit = task_data.split('|')
         taskid = datasplit[0]
         params = datasplit[1]
-        success = self.do_task(params)
+        success = self.do_task(decode_params(params))
 
         self.__send_to_socket('WKRTASKDONE', str.format('{}|{}', taskid, 1 if success else 0))
 
