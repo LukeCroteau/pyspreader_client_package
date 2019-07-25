@@ -187,6 +187,7 @@ class SpreadWorker(abc.ABC):
         self.do_init_jobparams()
         self.__client_init = True
         self.__send_to_socket('WKRINITIALIZED')
+        self.__send_to_socket('WKREVENTSUBSCRIBE', str.format('NEW_TASK_{}', self.__job_id))
 
     def __handle_client_task(self, task_data):
         datasplit = task_data.split('|')
