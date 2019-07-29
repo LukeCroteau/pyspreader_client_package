@@ -171,7 +171,7 @@ class SpreadWorker(abc.ABC):
         if (not self.__last_start_attempt) or \
             ((datetime.datetime.now() - self.__last_start_attempt).total_seconds() > 10):
             self.__last_start_attempt = datetime.datetime.now()
-            self.__log_debug('Client has not yet sent Initialization. Attempting to start.')
+            self.__log_debug('Client has not yet sent Initialization. Attempting to start.', False)
             self.__send_to_socket('WKRSTARTED')
 
     def __handle_client_ping(self):
@@ -253,6 +253,8 @@ class SpreadWorker(abc.ABC):
         elif command == 'WKRSTOP':
             self.__log_debug('Received Stop. Quitting.', False)
             self.__running = False
+        elif command == 'WKREVENT':
+            self.__log_debug(str.format('Received Event: {}', params), False)
         else:
             self.__log_debug(str.format('Unknown Command {}, Quitting.', command), False)
             self.__running = False
