@@ -78,8 +78,8 @@ class SpreadWorker(abc.ABC):
         ''' Log a Debug string to Console and Client '''
         if self.debug_mode:
             output_to_console(log_string)
-            if log_to_client:
-                self.__send_log_debug(log_string)
+        if log_to_client:
+            self.__send_log_debug(log_string)
 
     def __log_message(self, log_string):
         ''' Log a Message to Console and Client '''
