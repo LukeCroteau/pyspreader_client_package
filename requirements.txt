@@ -11,7 +11,7 @@ mccabe==0.6.1
 packaging==19.0
 pip-review==1.0
 pkginfo==1.5.0.1
-psutil==5.6.1
+psutil==5.6.6
 psycopg2==2.8
 Pygments==2.3.1
 pylint==2.3.1
